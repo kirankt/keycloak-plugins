@@ -1,0 +1,12 @@
+{
+  "themes": [
+    {
+      "name": "pbme",
+      "types": [
+        "admin",
+        "account",
+        "login"
+      ]
+    }
+  ]
+}
