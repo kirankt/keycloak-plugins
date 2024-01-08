@@ -163,13 +163,15 @@ public class X509RegistrationUserCreation extends RegistrationUserCreation {
   }
 
   @Override
-  public void validate(ValidationContext context) {
+  public void validate(final ValidationContext context) {
     MultivaluedMap<String, String> formData = context.getHttpRequest().getDecodedFormParameters();
     List<FormMessage> errors = new ArrayList<>();
     String username = formData.getFirst(Validation.FIELD_USERNAME);
     String email = formData.getFirst(Validation.FIELD_EMAIL);
 
     String eventError = Errors.INVALID_REGISTRATION;
+
+    validateConfiguration(context);
 
     String location = formData.getFirst("user.attributes.location");
     if (Validation.isBlank(location) || !location.equals("42")) {
@@ -232,37 +234,45 @@ public class X509RegistrationUserCreation extends RegistrationUserCreation {
   }
 
   @Override
-  public void buildPage(FormContext context, LoginFormsProvider form) {
-    /*
-     * Validation of the configuration happens here (for the time being)
-     */
+  public void buildPage(final FormContext context, final LoginFormsProvider form) {
+    String x509Username = X509Tools.getX509Username(context);
+    if (x509Username != null) {
+      form.setAttribute("cacIdentity", x509Username);
+    }
+  }
+
+  /*
+   * Validation of the execution configuration
+   */
+  public void validateConfiguration(final ValidationContext context) {
+
+    MultivaluedMap<String, String> formData = context.getHttpRequest().getDecodedFormParameters();
+    List<FormMessage> errors = new ArrayList<>();
     AuthenticatorConfigModel config = context.getAuthenticatorConfig();
     if (config == null) {
-      form.addError(new FormMessage(null,
-          "Registration configuration not found."));
-      return;
+      errors.add(new FormMessage(null,
+          "Registration configuration was null."));
     }
     boolean disallow = Boolean.parseBoolean(config.getConfig().get(RESTRICT_REGISTRATION));
     if (disallow) {
-      form.addError(new FormMessage(null, "Warning: Registration without CAC is disallowed"));
-      return;
+      errors.add(new FormMessage(null, "Warning: Registration without CAC is disallowed"));
     }
 
     String userIdentityAttribute = config.getConfig().get(USER_IDENTITY_ATTRIBUTE);
     if (userIdentityAttribute == null || userIdentityAttribute.isEmpty()) {
-      form.addError(
+      errors.add(
           new FormMessage(null, "Configuration Error: User Identity Attribute not found"));
     }
 
     String autoJoinGroup = config.getConfig().get(AUTO_JOIN_GROUP);
     if (autoJoinGroup == null || autoJoinGroup.isEmpty()) {
-      form.addError(
+      errors.add(
           new FormMessage(null, "Configuration Error: Auto join group not found"));
     } else {
       List<String> autoJoinGroupList = Arrays.asList(autoJoinGroup.split(","));
       autoJoinGroupList.forEach(group -> {
         if (!group.trim().startsWith("/")) {
-          form.addError(new FormMessage(null,
+          errors.add(new FormMessage(null,
               "Configuration Error: Auto Join Group entry does not start with a '/'"));
         }
       });
@@ -270,14 +280,14 @@ public class X509RegistrationUserCreation extends RegistrationUserCreation {
 
     String requiredCertificatePolicies = config.getConfig().get(REQUIRED_CERTIFICATE_POLICIES);
     if (requiredCertificatePolicies == null || requiredCertificatePolicies.isEmpty()) {
-      form.addError(
+      errors.add(
           new FormMessage(null, "Configuration Error: Required certificate policy not found"));
     } else {
       List<String> requiredCertificatePoliciesList = Arrays.asList(
           requiredCertificatePolicies.split(","));
       requiredCertificatePoliciesList.forEach(policy -> {
         if (!policy.trim().matches("^\\d+(\\.\\d+)*$")) {
-          form.addError(new FormMessage(null,
+          errors.add(new FormMessage(null,
               "Configuration Error: Unknown Required certificate policy"));
         }
       });
@@ -285,41 +295,47 @@ public class X509RegistrationUserCreation extends RegistrationUserCreation {
 
     String noEmailAutoJoinGroup = config.getConfig().get(NO_EMAIL_MATCH_AUTO_JOIN_GROUP);
     if (noEmailAutoJoinGroup == null || noEmailAutoJoinGroup.isEmpty()) {
-      form.addError(
+      errors.add(
           new FormMessage(null, "Configuration Error: No E-mail auto join group not found"));
     } else {
       List<String> noEmailAutoJoinGroupList = Arrays.asList(noEmailAutoJoinGroup.split(","));
       noEmailAutoJoinGroupList.stream().filter(group -> !group.trim().startsWith("/"))
           .map(group -> new FormMessage(null,
               "Configuration Error: No e-mail auto join group entry does not start with a '/'"))
-          .forEach(form::addError);
+          .forEach(errors::add);
     }
 
     String emailAutoJoinGroup = config.getConfig().get(NO_EMAIL_MATCH_AUTO_JOIN_GROUP);
     if (emailAutoJoinGroup == null || emailAutoJoinGroup.isEmpty()) {
-      form.addError(
+      errors.add(
           new FormMessage(null, "Configuration Error: E-mail auto join group not found"));
     } else {
       Map<String, String[]> emailAutoJoinGroupMap = convertStringToMap(emailAutoJoinGroup);
       emailAutoJoinGroupMap.forEach((email, groups) -> {
         if (!email.startsWith("@") || (!email.startsWith("."))) {
-          form.addError(new FormMessage(null,
+          errors.add(new FormMessage(null,
               "Configuration Error: E-mail domain must start with a '.' or '@'"));
         }
         Arrays.asList(groups).forEach(group -> {
           if (!group.trim().startsWith("/")) {
-            form.addError(new FormMessage(null,
+            errors.add(new FormMessage(null,
                 "Configuration Error: E-mail auto join group entry does not start with a '/'"));
           }
         });
       });
+    }
+
+    if (!errors.isEmpty()) {
+      context.error(Errors.INVALID_CONFIG);
+      context.validationError(formData, errors);
     }
   }
 
   @Override
   public void success(final FormContext context) {
     UserModel user = context.getUser();
-    String userIdentityAttribute = context.getAuthenticatorConfig().getConfig().get(USER_IDENTITY_ATTRIBUTE);
+    String userIdentityAttribute = context.getAuthenticatorConfig().getConfig()
+        .get(USER_IDENTITY_ATTRIBUTE);
     String x509Username = X509Tools.getX509Username(context);
 
     joinValidUserToGroups(context, user, x509Username);
@@ -377,7 +393,8 @@ public class X509RegistrationUserCreation extends RegistrationUserCreation {
           user.getId(), user.getUsername(), x509Username);
       //config.getAutoJoinGroupX509().forEach(user::joinGroup);
       String[] autoJoinGroups = config.getConfig().get(AUTO_JOIN_GROUP).split(",");
-      convertPathsToGroupModels(session, realm, Arrays.asList(autoJoinGroups)).forEach(user::joinGroup);
+      convertPathsToGroupModels(session, realm, Arrays.asList(autoJoinGroups)).forEach(
+          user::joinGroup);
     } else {
       if (domainMatchCount != 0) {
         // User is not a X509 user but is in the whitelist
@@ -385,7 +402,8 @@ public class X509RegistrationUserCreation extends RegistrationUserCreation {
             user.getUsername(), email);
         String[] emailMatchAutoJoinGroupList = emailMatchAutoJoinGroupMap.entrySet().stream()
             .filter(entry -> email.endsWith(entry.getKey())).findFirst().get().getValue();
-        convertPathsToGroupModels(session, realm, Arrays.asList(emailMatchAutoJoinGroupList)).forEach(
+        convertPathsToGroupModels(session, realm,
+            Arrays.asList(emailMatchAutoJoinGroupList)).forEach(
             user::joinGroup);
       } else {
         // User is not a X509 user or in whitelist

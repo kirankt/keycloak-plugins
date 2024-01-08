@@ -40,14 +40,16 @@ public class RequireGroupAuthenticatorFactory implements AuthenticatorFactory {
         .name(USER_ACTIVE_X509_ATTRIBUTE)
         .type(ProviderConfigProperty.STRING_TYPE)
         .label("User X509 Attribute")
-        .helpText("Tracks if the current login session is using PKI at all, even if not bound to the user.")
+        .helpText(
+            "Tracks if the current login session is using PKI at all, even if not bound to the user.")
         .defaultValue("activecac")
         .add()
         .property()
         .name(GROUP_PROTECTION_IGNORE_CLIENTS)
         .type(ProviderConfigProperty.TEXT_TYPE)
         .label("Group Protection Ignore Clients")
-        .helpText("White-list clients that do not require P1 group protection logic. Comma-separated list of strings.")
+        .helpText(
+            "White-list clients that do not require P1 group protection logic. Comma-separated list of strings.")
         .defaultValue(groupProtectionIgnoreClients)
         .add().
         build();
@@ -147,4 +149,5 @@ public class RequireGroupAuthenticatorFactory implements AuthenticatorFactory {
     // no implementation needed here. Just return empty collection
     return configProperties;
   }
+
 }
