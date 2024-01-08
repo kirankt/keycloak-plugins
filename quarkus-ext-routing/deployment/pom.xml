@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>dod.p1</groupId>
+    <version>1.0.0</version>
+    <artifactId>quarkus-routing</artifactId>
+    <name>Quarkus Routing</name>
+    <properties>
+        <quarkusPlatformGroupId>io.quarkus</quarkusPlatformGroupId>
+        <quarkus.version>3.2.9.Final</quarkus.version>
+        <quarkus.build.version>3.2.9.Final</quarkus.build.version>
+        <rootProjectgroupId>dod.p1</rootProjectgroupId>
+        <rootProjectVersion>1.0.0</rootProjectVersion>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+        <quarkusPlatformGroupId>io.quarkus.platform</quarkusPlatformGroupId>
+        <quarkusPlatformArtifactId>quarkus-bom</quarkusPlatformArtifactId>
+        <quarkusPlatformVersion>2.12.3.Final</quarkusPlatformVersion>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>${quarkusPlatformGroupId}</groupId>
+            <artifactId>${quarkusPlatformArtifactId}</artifactId>
+            <version>${quarkusPlatformVersion}</version>
+            <type>pom</type>
+            <scope>import</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-arc-deployment</artifactId>
+            <version>2.12.3.Final</version>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-vertx-http-deployment</artifactId>
+            <version>2.12.3.Final</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+            <version>3.0.1.RELEASE</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-reactive-routes</artifactId>
+            <version>2.12.3.Final</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-junit5-internal</artifactId>
+            <version>2.12.3.Final</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.rest-assured</groupId>
+            <artifactId>rest-assured</artifactId>
+            <version>4.4.0</version> <!-- Replace with the actual version -->
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+</project>

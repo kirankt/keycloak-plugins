@@ -1,0 +1,9 @@
+name: Kc Routing
+#description: Do something useful.
+metadata:
+ keywords:
+   - kc-routing
+ guide: ...
+ categories:
+   - "miscellaneous"
+ status: "preview"

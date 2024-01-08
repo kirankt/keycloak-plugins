@@ -1,0 +1,4 @@
+/home/kiran/go/src/github.com/kirankt/keycloak-plugins/quarkus-ext-routing/deployment/src/main/java/dod/p1/kc/routing/deployment/KcRoutingHandler.java
+/home/kiran/go/src/github.com/kirankt/keycloak-plugins/quarkus-ext-routing/deployment/src/main/java/dod/p1/kc/routing/deployment/KcRoutingConfig.java
+/home/kiran/go/src/github.com/kirankt/keycloak-plugins/quarkus-ext-routing/deployment/src/main/java/dod/p1/kc/routing/deployment/KcRoutingRecorder.java
+/home/kiran/go/src/github.com/kirankt/keycloak-plugins/quarkus-ext-routing/deployment/src/main/java/dod/p1/kc/routing/deployment/KcRoutingProcessor.java
